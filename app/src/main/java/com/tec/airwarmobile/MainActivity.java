@@ -6,8 +6,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -27,10 +25,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView etiqueta_vidas;
     private TextView etiqueta_hp;
     private Button boton_disparo;
+    private Button boton_poder;
 
     private SensorManager sensor_manager;
     private Jugador jugador;
     private boolean esta_disparando;
+    private boolean activo_poder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,17 +44,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         etiqueta_puntos = (TextView)findViewById(R.id.points_text);
         etiqueta_vidas = (TextView)findViewById(R.id.lives_text);
         boton_disparo = (Button)findViewById(R.id.button);
+        boton_poder = (Button)findViewById(R.id.poder_button);
 
         etiqueta_nombre.setTextColor(Color.GREEN);
         boton_disparo.setBackgroundColor(Color.WHITE);
         boton_disparo.setTextColor(Color.RED);
 
         esta_disparando = false;
+        activo_poder = false;
 
         conectar_con_servidor();
         esperar(2000);
         actualizar_stats();
-        disparar();
+        identificar_buton_presionado();
     }
 
     /**
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
-    private void disparar() {
+    private void identificar_buton_presionado() {
 
         boton_disparo.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -80,6 +82,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     esta_disparando = true;
                 }else {
                     esta_disparando = false;
+                }
+                return true;
+            }
+        });
+
+        boton_poder.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                if (event.getAction() == MotionEvent.ACTION_DOWN){
+                    activo_poder = true;
+                }else {
+                    activo_poder = false;
                 }
                 return true;
             }
@@ -121,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         try {
-            jugador.enviar(JSONHandler.establecer_json_coordenadas(event.values[0], event.values[1], esta_disparando));
+            jugador.enviar(JSONHandler.establecer_json_coordenadas(event.values[0], event.values[1], esta_disparando, activo_poder));
         } catch (JSONException e) {
             e.printStackTrace();
         }
